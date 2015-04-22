@@ -135,7 +135,7 @@ HRESULT CCommandWindow::_InitInstance()
         ::g_wszClassName, 
         ::g_wszDisconnected, 
         WS_DLGFRAME,
-        200, 200, 200, 80, 
+        200, 200, 200, 200, 
         NULL,
         NULL, _hInst, NULL);
     if (_hWnd == NULL)

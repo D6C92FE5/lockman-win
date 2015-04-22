@@ -289,9 +289,9 @@ HRESULT CSampleProvider::GetCredentialCount(
     BOOL* pbAutoLogonWithDefault
     )
 {
-    *pdwCount = 1;
+    *pdwCount = _pCommandWindow->GetConnectedStatus() ? 1 : 0;
     *pdwDefault = 0;
-    *pbAutoLogonWithDefault = FALSE;
+    *pbAutoLogonWithDefault = TRUE;
     return S_OK;
 }
 

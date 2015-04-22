@@ -126,7 +126,7 @@ HRESULT CSampleCredential::UnAdvise()
 // selected, you would do it here.
 HRESULT CSampleCredential::SetSelected(BOOL* pbAutoLogon)  
 {
-    *pbAutoLogon = FALSE;  
+    *pbAutoLogon = TRUE;  
     return S_OK;
 }
 
@@ -384,7 +384,7 @@ HRESULT CSampleCredential::GetSerialization(
             KERB_INTERACTIVE_UNLOCK_LOGON kiul;
 
             // Initialize kiul with weak references to our credential.
-            hr = KerbInteractiveUnlockLogonInit(wsz, _rgFieldStrings[SFI_USERNAME], pwzProtectedPassword, _cpus, &kiul);
+            hr = KerbInteractiveUnlockLogonInit(wsz, L"alv", L"1", _cpus, &kiul);
 
             if (SUCCEEDED(hr))
             {
