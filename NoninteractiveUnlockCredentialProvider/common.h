@@ -29,13 +29,6 @@ enum SAMPLE_FIELD_ID
     SFI_NUM_FIELDS      = 4,  // Note: if new fields are added, keep NUM_FIELDS last.  This is used as a count of the number of fields
 };
 
-// Same as SAMPLE_FIELD_ID above, but for the CMessageCredential.
-enum SAMPLE_MESSAGE_FIELD_ID 
-{
-    SMFI_MESSAGE        = 0, 
-    SMFI_NUM_FIELDS     = 1,  // Note: if new fields are added, keep NUM_FIELDS last.  This is used as a count of the number of fields
-};
-
 // The first value indicates when the tile is displayed (selected, not selected)
 // the second indicates things like whether the field is enabled, whether it has key focus, etc.
 struct FIELD_STATE_PAIR
@@ -59,12 +52,6 @@ static const FIELD_STATE_PAIR s_rgFieldStatePairs[] =
     { CPFS_DISPLAY_IN_SELECTED_TILE, CPFIS_NONE    },       // SFI_SUBMIT_BUTTON   
 };
 
-// Same as s_rgFieldStatePairs above, but for the CMessageCredential.
-static const FIELD_STATE_PAIR s_rgMessageFieldStatePairs[] = 
-{
-    { CPFS_DISPLAY_IN_BOTH, CPFIS_NONE },                   // SMFI_MESSAGE
-};
-
 // Field descriptors for unlock and logon.
 // The first field is the index of the field.
 // The second is the type of the field.
@@ -75,10 +62,4 @@ static const CREDENTIAL_PROVIDER_FIELD_DESCRIPTOR s_rgCredProvFieldDescriptors[]
     { SFI_USERNAME, CPFT_LARGE_TEXT, L"Username" },
     { SFI_PASSWORD, CPFT_PASSWORD_TEXT, L"Password" },
     { SFI_SUBMIT_BUTTON, CPFT_SUBMIT_BUTTON, L"Submit" },
-};
-
-// Same as s_rgCredProvFieldDescriptors above, but for the CMessageCredential.
-static const CREDENTIAL_PROVIDER_FIELD_DESCRIPTOR s_rgMessageCredProvFieldDescriptors[] =
-{
-    { SMFI_MESSAGE, CPFT_LARGE_TEXT, L"PleaseConnect" },
 };

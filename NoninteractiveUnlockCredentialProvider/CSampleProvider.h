@@ -16,13 +16,11 @@
 
 #include "CommandWindow.h"
 #include "CSampleCredential.h"
-#include "MessageCredential.h"
 #include "helpers.h"
 
 // Forward references for classes used here.
 class CCommandWindow;
 class CSampleCredential;
-class CMessageCredential;
 
 class CSampleProvider : public ICredentialProvider
 {
@@ -90,7 +88,6 @@ private:
     CCommandWindow              *_pCommandWindow;       // Emulates external events.
     LONG                        _cRef;                  // Reference counter.
     CSampleCredential           *_pCredential;          // Our "connected" credential.
-    CMessageCredential          *_pMessageCredential;   // Our "disconnected" credential.
     ICredentialProviderEvents   *_pcpe;                    // Used to tell our owner to re-enumerate credentials.
     UINT_PTR                    _upAdviseContext;       // Used to tell our owner who we are when asking to 
                                                         // re-enumerate credentials.
