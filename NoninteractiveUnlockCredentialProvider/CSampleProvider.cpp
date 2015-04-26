@@ -18,7 +18,7 @@
 
 #include <credentialprovider.h>
 #include "CSampleCredential.h"
-#include "CommandWindow.h"
+#include "CPipeListener.h"
 #include "guid.h"
 
 // CSampleProvider ////////////////////////////////////////////////////////
@@ -29,7 +29,7 @@ CSampleProvider::CSampleProvider():
     DllAddRef();
 
     _pcpe = NULL;
-    _pCommandWindow = NULL;
+    _pPipeListener = NULL;
     _pCredential = NULL;
 }
 
@@ -41,9 +41,9 @@ CSampleProvider::~CSampleProvider()
         _pCredential = NULL;
     }
 
-    if (_pCommandWindow != NULL)
+    if (_pPipeListener != NULL)
     {
-        delete _pCommandWindow;
+        delete _pPipeListener;
     }
 
     DllRelease();
@@ -51,7 +51,7 @@ CSampleProvider::~CSampleProvider()
 
 // This method acts as a callback for the hardware emulator. When it's called, it simply
 // tells the infrastructure that it needs to re-enumerate the credentials.
-void CSampleProvider::OnConnectStatusChanged()
+void CSampleProvider::OnUnlockingStatusChanged()
 {
     if (_pcpe != NULL)
     {
@@ -78,28 +78,28 @@ HRESULT CSampleProvider::SetUsageScenario(
         _cpus = cpus;
 
         // Create the CSampleCredential (for connected scenarios), the CMessageCredential
-        // (for disconnected scenarios), and the CCommandWindow (to detect commands, such
+        // (for disconnected scenarios), and the CPipeListener (to detect commands, such
         // as the connect/disconnect here).  We can get SetUsageScenario multiple times
         // (for example, cancel back out to the CAD screen, and then hit CAD again), 
         // but there's no point in recreating our creds, since they're the same all the
         // time
         
-        if (!_pCredential && !_pCommandWindow)
+        if (!_pCredential && !_pPipeListener)
         {
             // For the locked case, a more advanced credprov might only enumerate tiles for the 
             // user whose owns the locked session, since those are the only creds that will work
             _pCredential = new CSampleCredential();
             if (_pCredential != NULL)
             {
-                _pCommandWindow = new CCommandWindow();
-                if (_pCommandWindow != NULL)
+                _pPipeListener = new CPipeListener();
+                if (_pPipeListener != NULL)
                 {
                     // Initialize each of the object we've just created. 
-                    // - The CCommandWindow needs a pointer to us so it can let us know 
+                    // - The CPipeListener needs a pointer to us so it can let us know 
                     // when to re-enumerate credentials.
                     // - The CSampleCredential needs field descriptors.
                     // - The CMessageCredential needs field descriptors and a message.
-                    hr = _pCommandWindow->Initialize(this);
+                    hr = _pPipeListener->Initialize(this);
                     if (SUCCEEDED(hr))
                     {
                         hr = _pCredential->Initialize(_cpus, s_rgCredProvFieldDescriptors, s_rgFieldStatePairs);
@@ -117,10 +117,10 @@ HRESULT CSampleProvider::SetUsageScenario(
             // If anything failed, clean up.
             if (FAILED(hr))
             {
-                if (_pCommandWindow != NULL)
+                if (_pPipeListener != NULL)
                 {
-                    delete _pCommandWindow;
-                    _pCommandWindow = NULL;
+                    delete _pPipeListener;
+                    _pPipeListener = NULL;
                 }
                 if (_pCredential != NULL)
                 {
@@ -211,7 +211,7 @@ HRESULT CSampleProvider::GetFieldDescriptorCount(
     DWORD* pdwCount
     )
 {
-    if (_pCommandWindow->GetConnectedStatus())
+    if (_pPipeListener->GetUnlockingStatus())
     {
         *pdwCount = SFI_NUM_FIELDS;
     }
@@ -256,7 +256,7 @@ HRESULT CSampleProvider::GetCredentialCount(
     BOOL* pbAutoLogonWithDefault
     )
 {
-    *pdwCount = _pCommandWindow->GetConnectedStatus() ? 1 : 0;
+    *pdwCount = _pPipeListener->GetUnlockingStatus() ? 1 : 0;
     *pdwDefault = 0;
     *pbAutoLogonWithDefault = TRUE;
     return S_OK;

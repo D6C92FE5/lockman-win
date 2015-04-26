@@ -21,7 +21,7 @@
 #include "helpers.h"
 #include "dll.h"
 #include "resource.h"
-#include "CommandWindow.h"
+#include "CPipeListener.h"
 
 class CSampleCredential : public ICredentialProviderCredential
 {

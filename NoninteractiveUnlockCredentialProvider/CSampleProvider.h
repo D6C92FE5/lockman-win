@@ -14,12 +14,12 @@
 #include <windows.h>
 #include <strsafe.h>
 
-#include "CommandWindow.h"
+#include "CPipeListener.h"
 #include "CSampleCredential.h"
 #include "helpers.h"
 
 // Forward references for classes used here.
-class CCommandWindow;
+class CPipeListener;
 class CSampleCredential;
 
 class CSampleProvider : public ICredentialProvider
@@ -78,14 +78,14 @@ class CSampleProvider : public ICredentialProvider
     friend HRESULT CSampleProvider_CreateInstance(REFIID riid, __deref_out void** ppv);
 
 public:
-    void OnConnectStatusChanged();
+    void OnUnlockingStatusChanged();
 
   protected:
     CSampleProvider();
     __override ~CSampleProvider();
     
 private:
-    CCommandWindow              *_pCommandWindow;       // Emulates external events.
+    CPipeListener              *_pPipeListener;       // Emulates external events.
     LONG                        _cRef;                  // Reference counter.
     CSampleCredential           *_pCredential;          // Our "connected" credential.
     ICredentialProviderEvents   *_pcpe;                    // Used to tell our owner to re-enumerate credentials.
