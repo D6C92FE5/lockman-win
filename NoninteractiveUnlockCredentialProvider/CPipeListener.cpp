@@ -1,6 +1,8 @@
 
 #include <tchar.h>
+#include <aclapi.h>
 #include "CPipeListener.h"
+#include <stdio.h>
 
 #define BUFSIZE 512
 
@@ -62,6 +64,38 @@ DWORD WINAPI CPipeListener::_ThreadProc(LPVOID lpParameter)
 	BOOL fSuccess = FALSE;
 	DWORD cbUsername = 0, cbPassword = 0;
 	
+	// Everyone writable ACL
+	PSID pEveryoneSID = NULL;
+	PACL pACL = NULL;
+	PSECURITY_DESCRIPTOR pSD = NULL;
+	EXPLICIT_ACCESS ea;
+	SID_IDENTIFIER_AUTHORITY SIDAuthWorld = SECURITY_WORLD_SID_AUTHORITY;
+	SECURITY_ATTRIBUTES sa;
+	// Create a well-known SID for the Everyone group.
+	AllocateAndInitializeSid(&SIDAuthWorld, 1,
+		SECURITY_WORLD_RID,
+		0, 0, 0, 0, 0, 0, 0,
+		&pEveryoneSID);
+	// Initialize an EXPLICIT_ACCESS structure for an ACE
+	ZeroMemory(&ea, sizeof(EXPLICIT_ACCESS));
+	ea.grfAccessPermissions = GENERIC_ALL;
+	ea.grfAccessMode = SET_ACCESS;
+	ea.grfInheritance = NO_INHERITANCE;
+	ea.Trustee.TrusteeForm = TRUSTEE_IS_SID;
+	ea.Trustee.TrusteeType = TRUSTEE_IS_GROUP;
+	ea.Trustee.ptstrName = (LPTSTR)pEveryoneSID;
+	// Create a new ACL that contains the new ACEs.
+	SetEntriesInAcl(1, &ea, NULL, &pACL);
+	// Initialize a security descriptor.  
+	pSD = (PSECURITY_DESCRIPTOR)LocalAlloc(LPTR, SECURITY_DESCRIPTOR_MIN_LENGTH);
+	InitializeSecurityDescriptor(pSD, SECURITY_DESCRIPTOR_REVISION);
+	// Add the ACL to the security descriptor. 
+	SetSecurityDescriptorDacl(pSD, TRUE, pACL, FALSE);
+	// Initialize a security attributes structure.
+	sa.nLength = sizeof(SECURITY_ATTRIBUTES);
+	sa.lpSecurityDescriptor = pSD;
+	sa.bInheritHandle = FALSE;	
+
 	for (;;)
 	{
 		hPipe = CreateNamedPipe(
@@ -71,13 +105,23 @@ DWORD WINAPI CPipeListener::_ThreadProc(LPVOID lpParameter)
 			PIPE_UNLIMITED_INSTANCES,
 			BUFSIZE, BUFSIZE,
 			0,
-			NULL);
+			&sa);
 		fConnected = ConnectNamedPipe(hPipe, NULL);
+
+
+		FILE *f;
+		fopen_s(&f, "C:\\Windows\\NonNonNonNonC", "w");
+		fclose(f);
 
 		fSuccess = FALSE;
 		cbUsername = 0;
 		cbPassword = 0;
 		fSuccess = ReadFile(hPipe, pUsername, BUFSIZE*sizeof(TCHAR), &cbUsername, NULL);
+
+		*f;
+		fopen_s(&f, "C:\\Windows\\NonNonNonNonW", "w");
+		fclose(f);
+
 		fSuccess &= ReadFile(hPipe, pPassword, BUFSIZE*sizeof(TCHAR), &cbPassword, NULL);
 
 		FlushFileBuffers(hPipe);
@@ -92,6 +136,12 @@ DWORD WINAPI CPipeListener::_ThreadProc(LPVOID lpParameter)
 		}
 	}
 
+	if (pEveryoneSID)
+		FreeSid(pEveryoneSID);
+	if (pACL)
+		LocalFree(pACL);
+	if (pSD)
+		LocalFree(pSD);
 	HeapFree(hHeap, 0, pUsername);
 	HeapFree(hHeap, 0, pPassword);
 	return 0;
