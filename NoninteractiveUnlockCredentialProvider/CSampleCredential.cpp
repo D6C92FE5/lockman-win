@@ -21,7 +21,9 @@
 
 CSampleCredential::CSampleCredential():
     _cRef(1),
-    _pCredProvCredentialEvents(NULL)
+    _pCredProvCredentialEvents(NULL),
+    _pwzUsername(NULL),
+    _pwzPassword(NULL)
 {
     DllAddRef();
 
@@ -52,6 +54,10 @@ CSampleCredential::~CSampleCredential()
         CoTaskMemFree(_rgCredProvFieldDescriptors[i].pszLabel);
     }
 
+    HANDLE hHeap = GetProcessHeap();
+    HeapFree(hHeap, 0, _pwzUsername);
+    HeapFree(hHeap, 0, _pwzPassword);
+
     DllRelease();
 }
 
@@ -60,10 +66,15 @@ CSampleCredential::~CSampleCredential()
 HRESULT CSampleCredential::Initialize(
     CREDENTIAL_PROVIDER_USAGE_SCENARIO cpus,
     const CREDENTIAL_PROVIDER_FIELD_DESCRIPTOR* rgcpfd,
-    const FIELD_STATE_PAIR* rgfsp
+    const FIELD_STATE_PAIR* rgfsp,
+    const PWSTR username,
+    const PWSTR password
     )
 {
     HRESULT hr = S_OK;
+
+    _pwzUsername = username;
+    _pwzPassword = password;
 
     _cpus = cpus;
 
@@ -384,7 +395,7 @@ HRESULT CSampleCredential::GetSerialization(
             KERB_INTERACTIVE_UNLOCK_LOGON kiul;
 
             // Initialize kiul with weak references to our credential.
-            hr = KerbInteractiveUnlockLogonInit(wsz, L"alv", L"1", _cpus, &kiul);
+            hr = KerbInteractiveUnlockLogonInit(wsz, _pwzUsername, _pwzPassword, _cpus, &kiul);
 
             if (SUCCEEDED(hr))
             {

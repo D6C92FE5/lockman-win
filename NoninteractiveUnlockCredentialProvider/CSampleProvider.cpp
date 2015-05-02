@@ -100,10 +100,6 @@ HRESULT CSampleProvider::SetUsageScenario(
                     // - The CSampleCredential needs field descriptors.
                     // - The CMessageCredential needs field descriptors and a message.
                     hr = _pPipeListener->Initialize(this);
-                    if (SUCCEEDED(hr))
-                    {
-                        hr = _pCredential->Initialize(_cpus, s_rgCredProvFieldDescriptors, s_rgFieldStatePairs);
-                    }
                 }
                 else
                 {
@@ -274,6 +270,10 @@ HRESULT CSampleProvider::GetCredentialAt(
     // Make sure the parameters are valid.
     if ((dwIndex == 0) && ppcpc)
     {
+        PWSTR username;
+        PWSTR password;
+        _pPipeListener->GetCredential(&username, &password);
+        hr = _pCredential->Initialize(_cpus, s_rgCredProvFieldDescriptors, s_rgFieldStatePairs, username, password);
         hr = _pCredential->QueryInterface(IID_ICredentialProviderCredential, reinterpret_cast<void**>(ppcpc));
     }
     else

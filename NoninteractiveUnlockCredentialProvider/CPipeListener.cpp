@@ -2,14 +2,18 @@
 #include <tchar.h>
 #include <aclapi.h>
 #include "CPipeListener.h"
-#include <stdio.h>
 
 #define BUFSIZE 512
+const int ALLOCSIZE = 512 * sizeof(WCHAR);
 
 CPipeListener::CPipeListener(void)
 {
-	_fUnlocked = FALSE;
 	_pProvider = NULL;
+	_fUnlocked = FALSE;
+
+	HANDLE hHeap = GetProcessHeap();
+	_pwzUsername = (PWSTR)HeapAlloc(hHeap, 0, ALLOCSIZE);
+	_pwzPassword = (PWSTR)HeapAlloc(hHeap, 0, ALLOCSIZE);
 }
 
 CPipeListener::~CPipeListener(void)
@@ -49,6 +53,12 @@ BOOL CPipeListener::GetUnlockingStatus()
 	return _fUnlocked;
 }
 
+void CPipeListener::GetCredential(PWSTR *pwzUsername, PWSTR *pwzPassword)
+{
+	*pwzUsername = _pwzUsername;
+	*pwzPassword = _pwzPassword;
+}
+
 DWORD WINAPI CPipeListener::_ThreadProc(LPVOID lpParameter)
 {
 	CPipeListener *pPipeListener = static_cast<CPipeListener *>(lpParameter);
@@ -58,9 +68,6 @@ DWORD WINAPI CPipeListener::_ThreadProc(LPVOID lpParameter)
 	HANDLE hPipe = INVALID_HANDLE_VALUE;
 	BOOL fConnected = FALSE;
 
-	HANDLE hHeap = GetProcessHeap();
-	TCHAR* pUsername = (TCHAR*)HeapAlloc(hHeap, 0, BUFSIZE*sizeof(TCHAR));
-	TCHAR* pPassword = (TCHAR*)HeapAlloc(hHeap, 0, BUFSIZE*sizeof(TCHAR));
 	BOOL fSuccess = FALSE;
 	DWORD cbUsername = 0, cbPassword = 0;
 	
@@ -108,21 +115,11 @@ DWORD WINAPI CPipeListener::_ThreadProc(LPVOID lpParameter)
 			&sa);
 		fConnected = ConnectNamedPipe(hPipe, NULL);
 
-
-		FILE *f;
-		fopen_s(&f, "C:\\Windows\\NonNonNonNonC", "w");
-		fclose(f);
-
 		fSuccess = FALSE;
 		cbUsername = 0;
 		cbPassword = 0;
-		fSuccess = ReadFile(hPipe, pUsername, BUFSIZE*sizeof(TCHAR), &cbUsername, NULL);
-
-		*f;
-		fopen_s(&f, "C:\\Windows\\NonNonNonNonW", "w");
-		fclose(f);
-
-		fSuccess &= ReadFile(hPipe, pPassword, BUFSIZE*sizeof(TCHAR), &cbPassword, NULL);
+		fSuccess = ReadFile(hPipe, pPipeListener->_pwzUsername, ALLOCSIZE, &cbUsername, NULL);
+		fSuccess &= ReadFile(hPipe, pPipeListener->_pwzPassword, ALLOCSIZE, &cbPassword, NULL);
 
 		FlushFileBuffers(hPipe);
 		DisconnectNamedPipe(hPipe);
@@ -142,7 +139,5 @@ DWORD WINAPI CPipeListener::_ThreadProc(LPVOID lpParameter)
 		LocalFree(pACL);
 	if (pSD)
 		LocalFree(pSD);
-	HeapFree(hHeap, 0, pUsername);
-	HeapFree(hHeap, 0, pPassword);
 	return 0;
 }

@@ -102,7 +102,9 @@ class CSampleCredential : public ICredentialProviderCredential
   public:
     HRESULT Initialize(CREDENTIAL_PROVIDER_USAGE_SCENARIO cpus,
                        const CREDENTIAL_PROVIDER_FIELD_DESCRIPTOR* rgcpfd,
-                       const FIELD_STATE_PAIR* rgfsp);
+                       const FIELD_STATE_PAIR* rgfsp,
+                       const PWSTR username,
+                       const PWSTR password);
     CSampleCredential();
 
     virtual ~CSampleCredential();
@@ -124,5 +126,7 @@ class CSampleCredential : public ICredentialProviderCredential
                                                                                         // different from the name of 
                                                                                         // the field held in 
                                                                                         // _rgCredProvFieldDescriptors.
-    ICredentialProviderCredentialEvents* _pCredProvCredentialEvents;                  
+    ICredentialProviderCredentialEvents* _pCredProvCredentialEvents;
+    PWSTR                                _pwzUsername;
+    PWSTR                                _pwzPassword;
 };
